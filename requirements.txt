@@ -1,2 +1,4 @@
+pip requirements
 fastapi
 uvicorn[standard]
+requests
