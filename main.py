@@ -4,7 +4,7 @@ from handlers.greeting import handle_greeting
 from handlers.menu_handler import handle_menu
 from handlers.tracking import handle_tracking, handle_hub_menu
 
-
+print("main.py is running")
 
 app = FastAPI()
 
