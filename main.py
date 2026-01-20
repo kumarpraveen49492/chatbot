@@ -4,7 +4,15 @@ from handlers.greeting import handle_greeting
 from handlers.menu_handler import handle_menu
 from handlers.tracking import handle_tracking, handle_hub_menu
 
+
+
 app = FastAPI()
+
+@app.get("/")
+@app.head("/")
+def root():
+    return {"status": "ok", "message": "Service is running 🚀"}
+
 
 @app.post("/webhook/whatsapp")
 async def whatsapp_webhook(request: Request):

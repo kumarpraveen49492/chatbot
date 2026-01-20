@@ -10,7 +10,7 @@ def handle_tracking(user_id, msg):
     clear_session(user_id)
 
     return {
-        "reply": f"📦 Shipment *{msg}* status:\n*{status}*\n\nSay *Hi* to start again."
+        "reply": f"📦 Shipment *{msg}* status:\n*{status}*\n\n Say *Hi* to start again."
     }
 
 
@@ -19,6 +19,12 @@ def handle_hub_menu(user_id, option, pincode):
         return {"reply": "❌ Please enter a valid 6-digit pincode."}
 
     data = get_hub_details(pincode)
+
+   
+    if not data or not data.get("HubName"):
+        return {
+             " There are no nearby hub points to your location.Please enter another pincode."
+        }
 
     if data.get("error"):
         return {"reply": data["error"]}
@@ -33,14 +39,14 @@ def handle_hub_menu(user_id, option, pincode):
                 f"City: {data.get('HubCity')}\n"
                 f"Address: {data.get('Address1')}\n"
                 f"Email: {data.get('Email')}\n"
-                f"Location: {data.get('Location')}"
+                f"Location: {data.get('Location')}\n\n"
                 "Say *Hi* to start again."
             )
         }
 
     if option == "3":
         status = data.get("PincodeType")
-        msg = "✅ SERVICEABLE" if status == "Serviceable" else " NOT SERVICEABLE"
-        return {"reply": f"{msg} Say *Hi* to start again."}
+        msg = "✅ SERVICEABLE" if status == "Serviceable" else "❌ NOT SERVICEABLE"
+        return {"reply": f"{msg}\nSay *Hi* to start again."}
 
     return {"reply": "❌ Invalid option"}
