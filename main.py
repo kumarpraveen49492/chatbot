@@ -1,53 +1,52 @@
 from fastapi import FastAPI, Request
+from services.whatsapp_service import send_whatsapp_message
 from core.session import get_session
 from handlers.greeting import handle_greeting
 from handlers.menu_handler import handle_menu
 from handlers.tracking import handle_tracking, handle_hub_menu
-
-print("main.py is running")
+from utils.validators import is_valid_shipment_no
 
 app = FastAPI()
 
-@app.get("/")
-@app.head("/")
-def root():
-    return {"status": "ok", "message": "Service is running 🚀"}
-
+GUPSHUP_SOURCE_NUMBER = "918652633632"  # your WhatsApp business number
 
 @app.post("/webhook/whatsapp")
 async def whatsapp_webhook(request: Request):
     payload = await request.json()
-    msg = payload.get("text", "").strip()
-    user_id = payload.get("sender")
 
-    print("MESSAGE:", msg)
+    
+    user_id = payload["payload"]["source"]
+    msg = payload["payload"]["payload"]["text"].strip()
 
-    # 1️⃣ Greeting
+    # --- EXISTING CHATBOT LOGIC ---
     reply = handle_greeting(user_id, msg)
-    if reply is not None:
-        return reply
+    if reply is None:
+        session = get_session(user_id)
+        if not session:
+            if is_valid_shipment_no(msg):
+                reply = handle_tracking(user_id, msg)
+            elif msg.isdigit():
+                reply = {"reply": "👋 Please say *Hi* to start the conversation."}
+            else:
+                reply = handle_menu(user_id, msg)
+        else:
+            stage = session["stage"]
+            if stage == "MENU":
+                reply = handle_menu(user_id, msg)
+            elif stage == "TRACKING":
+                reply = handle_tracking(user_id, msg)
+            elif stage in ["HUB", "PINCODE"]:
+                option = "2" if stage == "HUB" else "3"
+                reply = handle_hub_menu(user_id, option, msg)
+            else:
+                reply = {"reply": "❌ Unable to process request"}
 
-    session = get_session(user_id)
+    
+    send_whatsapp_message(
+        source=GUPSHUP_SOURCE_NUMBER,
+        destination=user_id,
+        message=reply["reply"]
+    )
 
-    # 2️⃣ No session
-    if not session:
-        if msg.isdigit():
-            return {"reply": "👋 Please say *Hi* to start."}
-        return handle_menu(user_id, msg)
-
-    stage = session["stage"]
-
-    # 3️⃣ Menu
-    if stage == "MENU":
-        return handle_menu(user_id, msg)
-
-    # 4️⃣ Tracking
-    if stage == "TRACKING":
-        return handle_tracking(user_id, msg)
-
-    # 5️⃣ Hub / Pincode
-    if stage in ["HUB", "PINCODE"]:
-        option = "2" if stage == "HUB" else "3"
-        return handle_hub_menu(user_id, option, msg)
-
-    return {"reply": "❌ Unable to process request"}
+    
+    return {"status": "ok"}

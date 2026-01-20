@@ -9,7 +9,7 @@ HEADERS = {
     "X-Contacts-Key": "D9foQOsaw0duoL0zH8C0SqpcBgCwCCNBjXUalWV6XzE2AYBjRJ"
 }
 
-def get_tracking_status(shipping_note_no: str) -> str:
+def get_tracking_status(shipping_note_no: str):
     try:
         res = requests.get(
             TRACKING_API_URL,
@@ -20,10 +20,12 @@ def get_tracking_status(shipping_note_no: str) -> str:
         res.raise_for_status()
         data = res.json()
 
-        if not data:
-            return "Please register and come again"
+        
+        if not data or len(data) == 0:
+            return None  
 
-        return data[0].get("TrackingStatus", "Status not available")
+        
+        return data[0].get("TrackingStatus")
 
     except requests.exceptions.Timeout:
         logging.exception("Tracking timeout")
@@ -34,7 +36,8 @@ def get_tracking_status(shipping_note_no: str) -> str:
         return "❌ Unable to fetch tracking details."
 
 
-# ---------------- Hub / Pincode ----------------
+
+
 BOT_API_URL = "https://prod.bvclogistics.com/BVCUniverseAPI/rest/Bot/BotAPI"
 
 BOT_HEADERS = {

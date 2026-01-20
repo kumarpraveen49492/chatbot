@@ -7,10 +7,17 @@ def handle_tracking(user_id, msg):
         return {"reply": "❌ Please enter a valid shipment number (e.g. OS509911)."}
 
     status = get_tracking_status(msg)
+
+  
+    if not status:
+        return {
+            "reply": "❌ Shipment not found.\nPlease register and come again."
+        }
+
     clear_session(user_id)
 
     return {
-        "reply": f"📦 Shipment *{msg}* status:\n*{status}*\n\n Say *Hi* to start again."
+        "reply": f"📦 Shipment *{msg}* status:\n*{status}*\n\nSay *Hi* to start again."
     }
 
 
@@ -20,10 +27,10 @@ def handle_hub_menu(user_id, option, pincode):
 
     data = get_hub_details(pincode)
 
-   
+    # No hub found
     if not data or not data.get("HubName"):
         return {
-             " There are no nearby hub points to your location.Please enter another pincode."
+            "reply": "❌ There are no nearby hub points to your location.\nPlease enter another pincode."
         }
 
     if data.get("error"):
@@ -34,7 +41,7 @@ def handle_hub_menu(user_id, option, pincode):
     if option == "2":
         return {
             "reply": (
-                f"📍 *Hub Details*\n"
+                "📍 *Hub Details*\n"
                 f"Hub Name: {data.get('HubName')}\n"
                 f"City: {data.get('HubCity')}\n"
                 f"Address: {data.get('Address1')}\n"

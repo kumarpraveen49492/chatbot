@@ -19,13 +19,7 @@ def handle_menu(user_id, msg):
     if msg == "4":
         clear_session(user_id)
         return {"reply": "Please contact support at support@bvclogistics.com"}
-    if msg.isdigit() and len(msg) == 6:
-        clear_session(user_id)
-        return {
-            "reply": "❌ No hub points to your location." + menu_message()
-        }
 
-    # 🚫 invalid numbers
     if msg.isdigit():
         return {"reply": "❌ Please choose *1, 2, 3 or 4* only."}
 
